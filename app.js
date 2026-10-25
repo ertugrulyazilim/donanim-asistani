@@ -1,19 +1,12 @@
-// 1. Statik Veritabanımız (Arama testleri için genişletildi)
-// 1. Veritabanı Değişkeni (Başlangıçta boş, JSON'dan dolacak)
+// 1. Veritabanı Değişkeni ve Fetch API
 let laptopVeritabani = {};
 
-// 2. Fetch API ile JSON dosyasını okuma
 fetch("cihazlar.json")
     .then(cevap => cevap.json())
     .then(veri => {
         laptopVeritabani = veri;
-        console.log("Cihaz veritabanı başarıyla çekildi!");
     })
-    .catch(hata => {
-        console.error("Veri çekme hatası:", hata);
-    });
-
-// ... app.js dosyasının geri kalanı (Fiyatlar, arama çubuğu ve buton kontrolleri) tamamen aynı kalacak.
+    .catch(hata => console.error("Veri çekme hatası:", hata));
 
 // 2. Fiyatlandırma Veritabanı
 const fiyatVeritabani = {
@@ -22,37 +15,33 @@ const fiyatVeritabani = {
     iscilik: 500
 };
 
-// --- YENİ EKLENEN KISIM: AKILLI ARAMA ÇUBUĞU (LIVE SEARCH) ---
+// 3. Akıllı Arama Çubuğu (Live Search)
 const searchInput = document.getElementById("searchInput");
 const searchResults = document.getElementById("searchResults");
 const hiddenLaptopModel = document.getElementById("laptopModel");
 
 searchInput.addEventListener("input", function() {
-    const query = this.value.toLowerCase().trim(); // Yazılanı küçük harfe çevir
-    searchResults.innerHTML = ""; // Her harf basıldığında eski sonuçları temizle
+    const query = this.value.toLowerCase().trim();
+    searchResults.innerHTML = "";
 
-    if (query.length === 0) return; // Kutu boşsa işlem yapma
+    if (query.length === 0) return;
 
     let matchCount = 0;
-
     for (const key in laptopVeritabani) {
         const device = laptopVeritabani[key];
-        // Cihazın marka ve modelini birleştirip aramaya uygun hale getiriyoruz
         const searchString = `${device.brand} ${device.model}`.toLowerCase();
 
-        // Eğer yazılan kelime bu cihazın içinde geçiyorsa listeye ekle
         if (searchString.includes(query)) {
             const listItem = document.createElement("a");
             listItem.href = "#";
             listItem.className = "list-group-item list-group-item-action fw-bold text-dark";
             listItem.innerText = `${device.brand} ${device.model}`;
             
-            // Kullanıcı listedeki cihaza tıkladığında çalışacak kod:
             listItem.addEventListener("click", function(e) {
-                e.preventDefault(); // Sayfanın yukarı zıplamasını engelle
-                searchInput.value = `${device.brand} ${device.model}`; // Görünen kutuya tam adı yaz
-                hiddenLaptopModel.value = key; // Hesaplama algoritması için gizli alana cihazın kodunu kaydet
-                searchResults.innerHTML = ""; // Seçim yapıldıktan sonra alt listeyi kapat
+                e.preventDefault();
+                searchInput.value = `${device.brand} ${device.model}`;
+                hiddenLaptopModel.value = key;
+                searchResults.innerHTML = "";
             });
 
             searchResults.appendChild(listItem);
@@ -60,14 +49,12 @@ searchInput.addEventListener("input", function() {
         }
     }
 
-    // Eğer hiçbir eşleşme bulunamazsa uyarı göster
     if (matchCount === 0) {
         searchResults.innerHTML = `<div class="list-group-item text-muted">Cihaz bulunamadı...</div>`;
     }
 });
-// -----------------------------------------------------------
 
-// 3. Hesaplama Algoritması
+// 4. ESNEK HESAPLAMA ALGORİTMASI (Sadece RAM, sadece SSD veya İkisi)
 const calculateBtn = document.getElementById("calculateBtn");
 const resultBox = document.getElementById("resultBox");
 const resultAlert = document.getElementById("resultAlert");
@@ -84,50 +71,75 @@ calculateBtn.addEventListener("click", function() {
         gosterUyari("Lütfen arama çubuğundan bir cihaz seçin.", "danger");
         return;
     }
-    if (isNaN(newRamSize) || isNaN(newRamFreq) || isNaN(newSsdSize)) {
-        gosterUyari("Lütfen tüm donanım kapasite ve frekans değerlerini doldurun.", "danger");
-        return;
-    }
 
     const device = laptopVeritabani[selectedDeviceKey];
-    const totalRam = device.baseRam + newRamSize;
+    
+    // Kullanıcı hangi parçaları girmek istemiş? (Boş değilse ve 0'dan büyükse true olur)
+    const isRamUpgrading = !isNaN(newRamSize) && newRamSize > 0;
+    const isSsdUpgrading = !isNaN(newSsdSize) && newSsdSize > 0;
 
-    if (totalRam > device.maxRam) {
-        gosterUyari(`Hata: Anakart sınırı aşıldı! Maksimum destek: ${device.maxRam} GB.`, "danger");
-        return;
-    }
-    if (newRamType !== device.supportedType) {
-        gosterUyari(`Donanım Uyumsuzluğu: Anakart ${device.supportedType} soketine sahip.`, "danger");
-        return;
-    }
-    if (newRamFreq !== device.supportedFreq) {
-        gosterUyari(`Performans Uyarısı: Optimum frekans ${device.supportedFreq} MHz olmalıdır.`, "warning");
-        return;
-    }
-    if (newSsdType === "NVMe" && device.hasM2Slot === false) {
-        gosterUyari(`Uyumsuzluk: M.2 NVMe yuvası bulunmuyor.`, "danger");
-        return;
-    }
-    if (newSsdType === "SATA" && device.hasSataSlot === false) {
-        gosterUyari(`Uyumsuzluk: Eski nesil 2.5 inç SATA yuvası bulunmuyor.`, "danger");
+    if (!isRamUpgrading && !isSsdUpgrading) {
+        gosterUyari("Lütfen yükseltmek istediğiniz RAM veya SSD kapasitesinden en az birini girin.", "warning");
         return;
     }
 
-    const ramMaliyeti = newRamSize * fiyatVeritabani.ram[newRamType];
-    const ssdMaliyeti = newSsdSize * fiyatVeritabani.ssd[newSsdType];
-    const toplamFiyat = ramMaliyeti + ssdMaliyeti + fiyatVeritabani.iscilik;
+    let toplamFiyat = fiyatVeritabani.iscilik; // Sabit işçilik
+    let basariMesaji = "Sistem Yükseltmesi Başarılı!<br>";
+    let maliyetDetayi = `<strong>Tahmini Maliyet Tablosu:</strong><br>- İşçilik/Montaj: ${fiyatVeritabani.iscilik} TL<br>`;
 
-    const basariMesaji = `
-        Sistem Yükseltmesi Başarılı! Toplam belleğiniz ${totalRam} GB olacak ve ${newSsdSize} GB ${newSsdType} SSD takılacaktır.
+    // SADECE RAM GİRİLDİYSE BU BLOK ÇALIŞIR
+    if (isRamUpgrading) {
+        if (isNaN(newRamFreq)) {
+            gosterUyari("Lütfen ekleyeceğiniz RAM'in frekansını (MHz) girin.", "danger");
+            return;
+        }
+        const totalRam = device.baseRam + newRamSize;
+        
+        if (totalRam > device.maxRam) {
+            gosterUyari(`Hata: Anakart sınırı aşıldı! Maksimum destek: ${device.maxRam} GB.`, "danger");
+            return;
+        }
+        if (newRamType !== device.supportedType) {
+            gosterUyari(`Donanım Uyumsuzluğu: Anakart ${device.supportedType} soketine sahip.`, "danger");
+            return;
+        }
+        if (newRamFreq !== device.supportedFreq) {
+            gosterUyari(`Performans Uyarısı: Optimum frekans ${device.supportedFreq} MHz olmalıdır.`, "warning");
+            return;
+        }
+
+        const ramMaliyeti = newRamSize * fiyatVeritabani.ram[newRamType];
+        toplamFiyat += ramMaliyeti;
+        basariMesaji += `- Toplam belleğiniz sorunsuz şekilde <b>${totalRam} GB</b> olacak.<br>`;
+        maliyetDetayi += `- Yeni RAM: ${ramMaliyeti} TL<br>`;
+    }
+
+    // SADECE SSD GİRİLDİYSE VEYA RAM'E EK OLARAK GİRİLDİYSE BU BLOK ÇALIŞIR
+    if (isSsdUpgrading) {
+        if (newSsdType === "NVMe" && device.hasM2Slot === false) {
+            gosterUyari(`Uyumsuzluk: M.2 NVMe yuvası bulunmuyor.`, "danger");
+            return;
+        }
+        if (newSsdType === "SATA" && device.hasSataSlot === false) {
+            gosterUyari(`Uyumsuzluk: Eski nesil 2.5 inç SATA yuvası bulunmuyor.`, "danger");
+            return;
+        }
+
+        const ssdMaliyeti = newSsdSize * fiyatVeritabani.ssd[newSsdType];
+        toplamFiyat += ssdMaliyeti;
+        basariMesaji += `- Sisteme <b>${newSsdSize} GB ${newSsdType}</b> SSD eklenecektir.<br>`;
+        maliyetDetayi += `- Yeni SSD: ${ssdMaliyeti} TL<br>`;
+    }
+
+    // SONUÇLARI BİRLEŞTİR VE EKRANA BAS
+    const finalMesaj = `
+        ${basariMesaji}
         <hr>
-        <strong>Tahmini Maliyet Tablosu:</strong><br>
-        - Yeni RAM: ${ramMaliyeti} TL<br>
-        - Yeni SSD: ${ssdMaliyeti} TL<br>
-        - İşçilik/Montaj: ${fiyatVeritabani.iscilik} TL<br>
+        ${maliyetDetayi}
         <h5 class="mt-2 text-success">Toplam Tahmini Tutar: ${toplamFiyat} TL</h5>
     `;
 
-    gosterUyari(basariMesaji, "success");
+    gosterUyari(finalMesaj, "success");
 });
 
 function gosterUyari(mesaj, tip) {
@@ -137,7 +149,7 @@ function gosterUyari(mesaj, tip) {
     resultAlert.innerHTML = mesaj;
 }
 
-// 4. Karanlık Mod (Dark Mode) Kontrolü
+// 5. Karanlık Mod (Dark Mode) Kontrolü
 const darkModeToggle = document.getElementById("darkModeToggle");
 const htmlElement = document.documentElement; 
 

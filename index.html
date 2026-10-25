@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Donanım Yükseltme Asistanı</title>
+    <!-- Bootstrap 5 CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+<!-- ÜST MENÜ (NAVBAR) -->
+<nav class="navbar navbar-dark bg-dark shadow-sm mb-4">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="#">⚙️ Donanım Asistanı</a>
+        <button class="btn btn-outline-light btn-sm" id="darkModeToggle">🌙 Karanlık Mod</button>
+    </div>
+</nav>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow border-0">
+                <div class="card-header bg-dark text-white text-center py-3">
+                    <h4 class="mb-0">RAM Yükseltme ve Uyumluluk Hesaplayıcı</h4>
+                </div>
+                <div class="card-body p-4">
+                    <!-- Cihaz Seçimi -->
+                   <!-- Cihaz Seçimi (Akıllı Arama Çubuğu) -->
+                    <div class="mb-4 position-relative">
+                        <label for="searchInput" class="form-label fw-bold">Mevcut Cihazınızı Yazın:</label>
+                        <input type="text" class="form-control form-control-lg" id="searchInput" placeholder="Örn: TUF, Victus, IdeaPad..." autocomplete="off">
+                        
+                        <!-- Arama Sonuçlarının Anlık Listeleneceği Kutu (JS ile dolacak) -->
+                        <div id="searchResults" class="list-group position-absolute w-100 shadow-lg" style="z-index: 1000; max-height: 200px; overflow-y: auto;">
+                            <!-- Eşleşen sonuçlar buraya eklenecek -->
+                        </div>
+                        
+                        <!-- Arka planda seçilen cihazın kodunu tutacak gizli alan -->
+                        <input type="hidden" id="laptopModel">
+                    </div>
+                    <hr class="text-muted">
+
+                    <!-- Yükseltme Donanımı -->
+                    <h5 class="mb-3 mt-4 text-secondary">Eklenecek Yeni RAM Modülü</h5>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="ramSize" class="form-label">Kapasite (GB):</label>
+                            <input type="number" class="form-control" id="ramSize" placeholder="Örn: 8, 16">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="ramType" class="form-label">Tür:</label>
+                            <select class="form-select" id="ramType">
+                                <option value="DDR4">DDR4</option>
+                                <option value="DDR5">DDR5</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="ramFreq" class="form-label">Frekans (MHz):</label>
+                            <input type="number" class="form-control" id="ramFreq" placeholder="Örn: 3200, 4800">
+                        </div>
+                    </div>
+<hr class="text-muted mt-4">
+                    <h5 class="mb-3 text-secondary">Eklenecek Yeni SSD Modülü</h5>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="ssdSize" class="form-label">Kapasite (GB):</label>
+                            <input type="number" class="form-control" id="ssdSize" placeholder="Örn: 512, 1024">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="ssdType" class="form-label">Tür:</label>
+                            <select class="form-select" id="ssdType">
+                                <option value="NVMe">M.2 NVMe (PCIe)</option>
+                                <option value="SATA">SATA 3 (2.5 inç)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <!-- Hesapla Butonu -->
+                    <div class="d-grid gap-2 mt-4">
+                        <button class="btn btn-primary btn-lg" id="calculateBtn">Uyumluluğu Kontrol Et</button>
+                    </div>
+<!-- Sonuç Ekranı (Başlangıçta Gizli olacak, JS ile açılacak) -->
+                    <div id="resultBox" class="mt-4 d-none">
+                        <div class="alert" id="resultAlert" role="alert">
+                            <!-- JS ile sonuç metni buraya yazdırılacak -->
+                        </div>
+                        
+                        <!-- YENİ EKLENEN YAZDIRMA BUTONU -->
+                        <div class="text-end mt-3 d-print-none">
+                            <button class="btn btn-outline-dark fw-bold" onclick="window.print()">
+                                🖨️ Fiyat Teklifini Yazdır / PDF Kaydet
+                            </button>
+                        </div>
+                    </div>
+                 
+<!-- İkinci adımda yazacağımız JavaScript Dosyası -->
+<script src="app.js"></script>
+</body>
+</html>

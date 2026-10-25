@@ -1,0 +1,42 @@
+{
+    "asus_tuf_a15": {
+        "brand": "ASUS",
+        "model": "TUF Gaming A15 (FA506N)",
+        "baseRam": 8,
+        "maxRam": 32,
+        "supportedType": "DDR5",
+        "supportedFreq": 4800,
+        "hasM2Slot": true,
+        "hasSataSlot": false
+    },
+    "lenovo_ideapad_gaming": {
+        "brand": "Lenovo",
+        "model": "IdeaPad Gaming 3",
+        "baseRam": 8,
+        "maxRam": 16,
+        "supportedType": "DDR4",
+        "supportedFreq": 3200,
+        "hasM2Slot": true,
+        "hasSataSlot": true
+    },
+    "hp_victus_16": {
+        "brand": "HP",
+        "model": "Victus 16",
+        "baseRam": 16,
+        "maxRam": 64,
+        "supportedType": "DDR5",
+        "supportedFreq": 4800,
+        "hasM2Slot": true,
+        "hasSataSlot": false
+    },
+    "monster_abra_a5": {
+        "brand": "Monster",
+        "model": "Abra A5 V19.2",
+        "baseRam": 8,
+        "maxRam": 64,
+        "supportedType": "DDR4",
+        "supportedFreq": 3200,
+        "hasM2Slot": true,
+        "hasSataSlot": false
+    }
+}
